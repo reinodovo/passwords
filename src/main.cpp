@@ -55,9 +55,16 @@ void generate_options() {
         return;
     } 
     for (int i = 0; i < WORD_LENGTH; i++) {
+        for (int j = OPTIONS - 1; j >= 0; j--) {
+            int k = esp_random() % (j + 1);
+            char temp = position[i].letters[j];
+            position[i].letters[j] = position[i].letters[k];
+            position[i].letters[k] = temp;
+        }
+    }
+    for (int i = 0; i < WORD_LENGTH; i++) {
         Display::word[i] = position[i].letters[position[i].selected];
     }
-    // TODO: random shuffle
 }
 
 void button_pressed(ButtonState state, int col, int row) {
