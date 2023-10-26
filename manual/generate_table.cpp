@@ -10,7 +10,7 @@ void generate_table(WordList& words) {
     for (int i = 0; i < WORD_COUNT / COLUMNS; i++) {
         printf("<tr>");
         for (int j = 0; j < COLUMNS; j++) {
-            printf("<th>%s</th>", words[i * COLUMNS + j].c_str());
+            printf("<th style=\"padding: 0.75em 1em;font-size: 120%%;font-style: normal;font-weight: 400;\">%s</th>", words[i * COLUMNS + j].c_str());
         }
         printf("</tr>");
     }
