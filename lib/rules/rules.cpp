@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <random>
 
-#include <manual.h>
+#include <rules.h>
 
 const int ALL_WORDS = 2315;
 const char *all_words[ALL_WORDS] = {

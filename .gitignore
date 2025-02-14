@@ -5,5 +5,5 @@
 .vscode/settings.json
 .vscode/ipch
 .DS_STORE
-manual/pages/*
-manual/table.html
+manual/data/*
+*.stl

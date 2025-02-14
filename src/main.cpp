@@ -1,9 +1,10 @@
 #include <Arduino.h>
 
 #include <display.h>
-#include <manual.h>
 #include <puzzle_module.h>
+#include <rules.h>
 #include <utils/button.h>
+
 
 const int RED_PIN = 27, GREEN_PIN = 14;
 const int SEGMENTS = 7;
@@ -129,12 +130,15 @@ void submit(ButtonState state, ButtonState _) {
 }
 
 void setup() {
-  if (!PuzzleModule::setup(PuzzleModule::StatusLight(RED_PIN, GREEN_PIN)))
-    ESP.restart();
+  Module::name = "Passwords";
+  Module::onManualCode = onManualCode;
+  Module::onStart = start;
+  Module::onRestart = restart;
 
-  PuzzleModule::onManualCode = onManualCode;
-  PuzzleModule::onStart = start;
-  PuzzleModule::onRestart = restart;
+  PuzzleModule::statusLight = PuzzleModule::StatusLight(RED_PIN, GREEN_PIN);
+
+  if (!PuzzleModule::setup())
+    ESP.restart();
 
   for (int i = 0; i < BUTTON_ROWS; i++) {
     pinMode(BUTTON_ROW_PINS[i], OUTPUT);
@@ -157,7 +161,7 @@ void setup() {
 void loop() {
   PuzzleModule::update();
   Display::update();
-  if (PuzzleModule::status() != PuzzleModule::ModuleStatus::Started)
+  if (Module::status() != Module::Status::Started)
     return;
   for (int i = 0; i < BUTTON_ROWS; i++) {
     digitalWrite(BUTTON_ROW_PINS[(i - 1 + BUTTON_ROWS) % BUTTON_ROWS], LOW);
