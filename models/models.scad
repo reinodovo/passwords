@@ -47,5 +47,19 @@ module bottom() {
     bomb_module_bottom(height_above_pcb = 7.8 + display_hidden_wall_thickness);
 }
 
+module button() {
+    button_base_tol = button_base - tolerance;
+    button_height_tol = button_height - tolerance;
+    button_base_skirt = button_base + 4.5;
+    button_height_skirt = button_height + 4.5;
+    height_above = 1.8;
+    height_below = 4;
+    tolerance = 0.2;
+    linear_extrude(height_below + height_above) polygon([[-button_base_tol / 2, -button_height_tol / 3], [button_base_tol / 2, -button_height_tol / 3], [0, 2 * button_height_tol / 3]]);
+    cylinder(height_below - wall_thickness - tolerance, 5, 5);
+}
+
 top();
 bottom();
+button();
+!rectangular_button(1.8, 4.2, submit_length, submit_width, 2, 1, "SUBMIT", 3.5, 1);
