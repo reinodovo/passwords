@@ -1,6 +1,4 @@
-#ifndef DISPLAY_H
-#define DISPLAY_H
-
+#pragma once
 #include <Arduino.h>
 
 const uint8_t EMPTY = 0b11111111;
@@ -19,33 +17,33 @@ const int DIGIT_PINS[DIGITS] = {19, 18, 5, 17, 16, 4, 2, 15, 12, 13};
 const int WORD_SIZE = 5;
 const int LETTERS = 26;
 const int LETTER_SEGMENTS[LETTERS + 1][2] = {
-    {A & B & C & D, B &C &D}, // A
-    {A & E, A &B & C & D &E}, // B
-    {A & B & C, A},           // C
-    {A & E, A &B & C &E},     // D
-    {A & B & C & D, A},       // E
-    {A & B & C & D, EMPTY},   // F
-    {A & B & C, A &C &D},     // G
-    {B & C & D, B &C &D},     // H
-    {A & E, A &E},            // I
-    {C, A &B &C},             // J
-    {B & C & D, F &G},        // K
-    {B & C, A},               // L
-    {B & C & F, B &C &F},     // M
-    {B & C & F, B &C &G},     // N
-    {A & B & C, A &B &C},     // O
-    {A & B & C & D, B &D},    // P
-    {A & B & C, A &B & C &G}, // Q
-    {A & B & C & D, B &D &G}, // R
-    {A & B & D, A &C &D},     // S
-    {A & E, E},               // T
-    {B & C, A &B &C},         // U
-    {B & C & G, F},           // V
-    {B & C & G, B &C &G},     // W
-    {F & G, F &G},            // X
-    {F, E &F},                // Y
-    {A & G, A &F},            // Z
-    {EMPTY, EMPTY}            // {
+    {A & B & C & D, B & C & D},  // A
+    {A & E, A & B & C & D & E},  // B
+    {A & B & C, A},              // C
+    {A & E, A & B & C& E},       // D
+    {A & B & C & D, A},          // E
+    {A & B & C & D, EMPTY},      // F
+    {A & B & C, A & C & D},      // G
+    {B & C & D, B & C & D},      // H
+    {A & E, A& E},               // I
+    {C, A & B & C},              // J
+    {B & C & D, F& G},           // K
+    {B & C, A},                  // L
+    {B & C & F, B & C & F},      // M
+    {B & C & F, B & C & G},      // N
+    {A & B & C, A & B & C},      // O
+    {A & B & C & D, B& D},       // P
+    {A & B & C, A & B & C& G},   // Q
+    {A & B & C & D, B & D & G},  // R
+    {A & B & D, A & C & D},      // S
+    {A & E, E},                  // T
+    {B & C, A & B & C},          // U
+    {B & C & G, F},              // V
+    {B & C & G, B & C & G},      // W
+    {F & G, F& G},               // X
+    {F, E& F},                   // Y
+    {A & G, A& F},               // Z
+    {EMPTY, EMPTY}               // {
 };
 
 const int DELAY = 1;
@@ -60,8 +58,7 @@ void send(int8_t data) {
 }
 
 void setup() {
-  for (int i = 0; i < WORD_SIZE; i++)
-    word[i] = '{';
+  for (int i = 0; i < WORD_SIZE; i++) word[i] = '{';
   pinMode(CLOCK, OUTPUT);
   pinMode(STORE, OUTPUT);
   pinMode(SER, OUTPUT);
@@ -81,6 +78,4 @@ void update() {
   send(segments);
   digitalWrite(DIGIT_PINS[index], HIGH);
 }
-}; // namespace Display
-
-#endif // DISPLAY_H
+};  // namespace Display

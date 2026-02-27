@@ -6,4 +6,6 @@
 .vscode/ipch
 .DS_STORE
 manual/data/*
+*.zip
+*.sha256
 *.stl

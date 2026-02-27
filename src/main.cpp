@@ -1,12 +1,15 @@
 #include <Arduino.h>
-
 #include <display.h>
-#include <puzzle_module.h>
+#include <modules/puzzle_module.h>
 #include <rules.h>
 #include <utils/button.h>
 
-
 const int RED_PIN = 27, GREEN_PIN = 14;
+PuzzleModule module(StatusLight(RED_PIN, GREEN_PIN));
+
+uint16_t manual_code;
+bool should_generate_manual;
+
 const int SEGMENTS = 7;
 const int SUBMIT_BUTTON_PIN = 26;
 
@@ -23,27 +26,24 @@ const int BUTTON_ROWS = 2;
 const int BUTTON_ROW_PINS[BUTTON_ROWS] = {33, 25};
 
 Button buttons[BUTTON_COLS][BUTTON_ROWS];
-Button submitButton;
+Button submit_button;
 
 struct SelectButtonFunction {
   int col, row;
   SelectButtonFunction(int col, int row) : col(col), row(row) {}
   void operator()(ButtonState state, ButtonState _) {
-    if (state != ButtonState::Pressed)
-      return;
+    if (state != ButtonState::Pressed) return;
     int offset = (row == 0) ? -1 : 1;
-    position[col].selected =
-        (position[col].selected + offset + OPTIONS) % OPTIONS;
+    position[col].selected = (position[col].selected + offset + OPTIONS) % OPTIONS;
     Display::word[col] = position[col].letters[position[col].selected];
   }
 };
 
 int answer;
 
-bool validateOptions() {
+bool validate_options() {
   for (int i = 0; i < words.size(); i++) {
-    if (i == answer)
-      continue;
+    if (i == answer) continue;
     bool found_word = true;
     for (int j = 0; j < WORD_LENGTH; j++) {
       bool found_letter = false;
@@ -58,13 +58,12 @@ bool validateOptions() {
         break;
       }
     }
-    if (found_word)
-      return false;
+    if (found_word) return false;
   }
   return true;
 }
 
-void generateOptions() {
+void generate_options() {
   answer = esp_random() % (words.size());
   for (int i = 0; i < WORD_LENGTH; i++) {
     position[i].letters[0] = words[answer][i];
@@ -84,8 +83,8 @@ void generateOptions() {
       position[i].letters[j] = letter;
     }
   }
-  if (!validateOptions()) {
-    generateOptions();
+  if (!validate_options()) {
+    generate_options();
     return;
   }
   for (int i = 0; i < WORD_LENGTH; i++) {
@@ -99,8 +98,7 @@ void generateOptions() {
 }
 
 void start() {
-  for (int i = 0; i < WORD_LENGTH; i++)
-    Display::word[i] = position[i].letters[position[i].selected];
+  for (int i = 0; i < WORD_LENGTH; i++) Display::word[i] = position[i].letters[position[i].selected];
 }
 
 void restart() {
@@ -108,14 +106,13 @@ void restart() {
   Display::setup();
 }
 
-void onManualCode(int code) {
-  words = generateWords(code);
-  generateOptions();
+void on_manual_code(int code) {
+  words = generate_words(code);
+  generate_options();
 }
 
 void submit(ButtonState state, ButtonState _) {
-  if (state != ButtonState::Pressed)
-    return;
+  if (state != ButtonState::Pressed) return;
   bool correct = true;
   for (int i = 0; i < WORD_LENGTH; i++) {
     if (position[i].letters[position[i].selected] != words[answer][i]) {
@@ -124,21 +121,20 @@ void submit(ButtonState state, ButtonState _) {
     }
   }
   if (correct)
-    PuzzleModule::solve();
+    module.solve();
   else
-    PuzzleModule::strike();
+    module.strike();
 }
 
 void setup() {
-  Module::name = "Passwords";
-  Module::onManualCode = onManualCode;
-  Module::onStart = start;
-  Module::onRestart = restart;
+  module.on_manual_code([&](uint16_t code) {
+    manual_code = code;
+    should_generate_manual = true;
+  });
+  module.on_start(start);
+  module.on_reset(restart);
 
-  PuzzleModule::statusLight = PuzzleModule::StatusLight(RED_PIN, GREEN_PIN);
-
-  if (!PuzzleModule::setup())
-    ESP.restart();
+  if (!module.setup()) ESP.restart();
 
   for (int i = 0; i < BUTTON_ROWS; i++) {
     pinMode(BUTTON_ROW_PINS[i], OUTPUT);
@@ -148,26 +144,28 @@ void setup() {
   for (int i = 0; i < BUTTON_COLS; i++) {
     for (int j = 0; j < BUTTON_ROWS; j++) {
       buttons[i][j] = Button(BUTTON_COL_PINS[i]);
-      buttons[i][j].onStateChange = SelectButtonFunction(i, j);
+      buttons[i][j].on_state_change(SelectButtonFunction(i, j));
     }
   }
 
-  submitButton = Button(SUBMIT_BUTTON_PIN);
-  submitButton.onStateChange = submit;
+  submit_button = Button(SUBMIT_BUTTON_PIN);
+  submit_button.on_state_change(submit);
 
   Display::setup();
 }
 
 void loop() {
-  PuzzleModule::update();
+  if (should_generate_manual) {
+    on_manual_code(manual_code);
+    should_generate_manual = false;
+  }
+  module.update();
   Display::update();
-  if (Module::status() != Module::Status::Started)
-    return;
+  if (module.get_state() != PuzzleModuleState::Started) return;
   for (int i = 0; i < BUTTON_ROWS; i++) {
     digitalWrite(BUTTON_ROW_PINS[(i - 1 + BUTTON_ROWS) % BUTTON_ROWS], LOW);
     digitalWrite(BUTTON_ROW_PINS[i], HIGH);
-    for (int j = 0; j < BUTTON_COLS; j++)
-      buttons[j][i].update();
+    for (int j = 0; j < BUTTON_COLS; j++) buttons[j][i].update();
   }
-  submitButton.update();
+  submit_button.update();
 }
