@@ -102,6 +102,7 @@ void start() {
 }
 
 void restart() {
+  generate_options();
   words.clear();
   Display::setup();
 }
